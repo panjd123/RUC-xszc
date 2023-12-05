@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RUC 形势与政策讲座</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .container {
+            width: 60%;
+            margin: auto;
+            overflow: hidden;
+        }
+
+        .activity-block {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: start;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .activity-info {
+            flex: 2;
+            margin-right: 20px;
+        }
+
+        .activity-image {
+            flex: 1;
+        }
+
+        .activity-image img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .activity-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .time-range {
+            margin-bottom: 10px;
+        }
+
+        .tips {
+            font-size: 12px;
+            color: grey;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>RUC 形势与政策讲座</h1>
+        <div class="tips">
+            <p>更新于 {{gen_time}}，初次访问请阅读网站末尾须知</p>
+        </div>
+        {% for data in data_dicts %}
+        {% if data.insert %}
+        <hr>
+        <p style="text-align: center; font-weight: bold;">以下为已满课程，但仍有可能有人退出报名</p>
+        {% endif %}
+        <div class="activity-block">
+            <div class="activity-info">
+                <p class="activity-name">{{ data.aname }}</p>
+                <p><strong>状态：{{ data.status }}</strong></p>
+                <p><strong>剩余名额：{{ data.left_slots }}</strong></p>
+                <p>{{ data.abstract }}</p>
+                <p class="time-range">时间: {{ data.begintime }} - {{ data.endtime }}</p>
+                <p>地点: {{ data.location }}</p>
+                <p>参与方式: {{ data.partakemodename }}</p>
+                <p><a href="{{ data.url }}" target="_blank">了解详情</a></p>
+            </div>
+            <div class="activity-image">
+                <img src="{{ data.poster }}" alt="活动海报">
+            </div>
+        </div>
+        {% endfor %}
+        <div class="tips">
+            <p>1. 仅显示作者账号能报名的或已报名的讲座（本表不包含针对特定学院的讲座）</p>
+            <p>2. 作者已报名的讲座不能直接查询是否还有剩余名额，你需要以你的身份进入查看</p>
+            <p>3. 如果打开了解详情为空白页，尝试先登陆<a href="https://v.ruc.edu.cn/campus#/index" target="_blank">微人大</a>让浏览器保存 cookies
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>
