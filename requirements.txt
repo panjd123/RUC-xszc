@@ -1,0 +1,8 @@
+requests
+asyncio
+aiohttp
+ruclogin
+pandas
+flask
+APScheduler
+gunicorn
