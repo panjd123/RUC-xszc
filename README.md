@@ -1,21 +1,16 @@
 # RUC 形势与政策讲座
 
-一个更易用的讲座查询系统，用你的学号和密码登录即可查询到你可以报名的形势与政策讲座。
+一个更易用的讲座查询系统，用你的学号和密码登录即可查询到你可以报名的形势与政策讲座，并支持邮箱提醒。
 
 ![](./imgs/rucxszc.png)
 
 ### How to use
 
-requirements
-
-```bash
-pip install requests pandas asyncio aiohttp flask ruclogin
-ruclogin --username 2021201212 --password ABC12345 --browser Chrome --driver ""
-```
-
 ```bash
 git clone git@github.com:panjd123/rucxszc.git
 cd rucxszc
+pip install -r requirements.txt
+ruclogin --username 2021201212 --password ABC12345 --browser Chrome --driver ""
 python web.py
 ```
 

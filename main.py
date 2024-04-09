@@ -14,12 +14,12 @@ def get_added_lectures(new_lectures, old_lectures):
             added_lectures.append(lecture)
     added_lectures = pd.DataFrame(added_lectures)
     if not added_lectures.empty:
-        added_lectures = added_lectures[added_lectures["status"] != "名额已满"]
+        added_lectures = added_lectures[added_lectures["status"].isin(["我要报名", "候补报名"])]
     return added_lectures
 
 
 def gen_keyinfo(lecs_df: pd.DataFrame):
-    lecs_df = lecs_df[lecs_df["status"] != "名额已满"]
+    lecs_df = lecs_df[lecs_df["status"].isin(["我要报名", "候补报名"])]
     text = "\n".join(f"{b}" for a, b in zip(lecs_df["aname"], lecs_df["begintime"]))
     return text
 

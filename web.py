@@ -19,7 +19,13 @@ DATABASE = "lec.db"
 
 sender_email = os.environ.get("SENDER_EMAIL", None)
 sender_password = os.environ.get("SENDER_PASSWORD", None)
-receiver_email = sender_email
+receiver_emails = []
+
+if os.path.exists("./receiver_emails.txt"):
+    receiver_emails = open("./receiver_emails.txt").read().splitlines()
+
+if sender_email not in receiver_emails:
+    receiver_emails.insert(0, sender_email)
 
 
 def get_db():
@@ -60,7 +66,7 @@ def load_dataframe():
 
 
 def notify_new_lectures(added_df):
-    if not sender_email or not sender_password or not receiver_email:
+    if not sender_email or not sender_password:
         print("No email configured, skip sending email")
         return
 
@@ -73,14 +79,15 @@ def notify_new_lectures(added_df):
         else:
             msg["Subject"] = "讲座提醒：服务器测试"
         msg["From"] = sender_email
-        msg["To"] = receiver_email
 
         part1 = MIMEText(html, "html")
         msg.attach(part1)
 
         with smtplib.SMTP_SSL("smtp.qq.com", 465) as server:
             server.login(sender_email, sender_password)
-            server.sendmail(sender_email, receiver_email, msg.as_string())
+            for receiver_email in receiver_emails:
+                msg["To"] = receiver_email
+                server.sendmail(sender_email, receiver_email, msg.as_string())
 
 
 def update_db(force_notification=False):
@@ -109,6 +116,10 @@ def index(df=None):
             if not full_slots_found:
                 df.loc[i, "insert"] = True
                 full_slots_found = True
+        if row["status"] == "取消报名":
+            df.loc[i, "status"] = "取消报名（网站作者已报名，无法查看剩余名额）"
+        if row["status"] == "取消候补报名":
+            df.loc[i, "status"] = "取消候补报名（网站作者已报名，无法查看剩余名额）"
     df_dict = df.to_dict(orient="records")
     gen_time = datetime.datetime.fromtimestamp(mtime)
     html = render_template(
@@ -153,7 +164,7 @@ if __name__ == "__main__":
         scheduler.start()
         update_db(force_notification=True)
         options = {
-            "bind": "%s:%s" % ("127.0.0.1", "8000"),
+            "bind": "%s:%s" % ("10.47.251.153", "8000"),
             "workers": 1,
         }
         StandaloneApplication(app, options).run()
