@@ -72,6 +72,8 @@ async def get_page_async(session, p_data):
 
 
 async def get_data_async(num=1000, pageSize=20):
+    global cookies
+    cookies = get_cookies()
     async with aiohttp.ClientSession() as session:
         tasks = []
         pages = num // pageSize + 1
@@ -152,10 +154,6 @@ async def get_info_async(session, aid=32779):
 
 
 async def get_infos_async(aids):
-    global cookies
-    if not check_cookies(cookies, "v"):
-        cookies = get_cookies()
-
     async with aiohttp.ClientSession() as session:
         tasks = []
         for aid in aids:

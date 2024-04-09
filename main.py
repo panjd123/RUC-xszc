@@ -1,6 +1,7 @@
 from rucpost import get_data, get_data_async, get_infos, get_infos_async
 import asyncio
 import pandas as pd
+from timeit import default_timer as timer
 
 
 def get_added_lectures(new_lectures, old_lectures):
@@ -14,7 +15,9 @@ def get_added_lectures(new_lectures, old_lectures):
             added_lectures.append(lecture)
     added_lectures = pd.DataFrame(added_lectures)
     if not added_lectures.empty:
-        added_lectures = added_lectures[added_lectures["status"].isin(["我要报名", "候补报名"])]
+        added_lectures = added_lectures[
+            added_lectures["status"].isin(["我要报名", "候补报名"])
+        ]
     return added_lectures
 
 
@@ -60,8 +63,7 @@ async def get_lectures():
         "取消候补报名",
         "名额已满",
     ]
-
-    df = await get_data_async(1000, pageSize=50)
+    df = await get_data_async(300, pageSize=30)
     # df.to_csv("data.csv", index=False)
 
     lectures = df.query(
@@ -107,5 +109,8 @@ def sync_get_lectures():
 
 
 if __name__ == "__main__":
+    tic = timer()
     df, text = sync_get_lectures()
+    toc = timer()
     print(text)
+    print(f"Costs {toc - tic} seconds")

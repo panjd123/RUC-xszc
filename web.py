@@ -126,6 +126,7 @@ def update_db(force_notification=False):
 def index(df=None):
     if df is None:
         df = load_dataframe()
+        app.logger.info("Index request received, %d lectures returned", len(df))
     mtime = df["update"].max()
     full_slots_found = False
     df["insert"] = False
