@@ -157,10 +157,12 @@ class StandaloneApplication(WSGIApplication):
 
 
 if __name__ == "__main__":
+    SCHEDULE_INTERVAL = 120
+
     if len(sys.argv) > 1 and sys.argv[1] == "init":
         init_db()
     elif len(sys.argv) > 1 and sys.argv[1] == "run":
-        scheduler.add_job(update_db, "interval", seconds=60)
+        scheduler.add_job(update_db, "interval", seconds=SCHEDULE_INTERVAL)
         scheduler.start()
         update_db(force_notification=True)
         options = {
@@ -169,7 +171,7 @@ if __name__ == "__main__":
         }
         StandaloneApplication(app, options).run()
     else:
-        scheduler.add_job(update_db, "interval", seconds=60)
+        scheduler.add_job(update_db, "interval", seconds=SCHEDULE_INTERVAL)
         scheduler.start()
         update_db(force_notification=True)
         app.run(debug=True)

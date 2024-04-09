@@ -4,7 +4,7 @@ import aiohttp
 import pandas as pd
 import re
 import json
-from ruclogin import get_cookies
+from ruclogin import get_cookies, check_cookies
 
 cookies = get_cookies()
 
@@ -99,7 +99,8 @@ def get_info(aid=32779):
         if data == "我要报名":
             # 距报名结束还有<span class="bold">2</span>天，已有158人报名，剩余92个报名名额
             info = re.findall(
-                r'距报名结束还有<span class="bold">(\d+)</span>天，已有(\d+)人报名，剩余(\d+)个报名名额', msg
+                r'距报名结束还有<span class="bold">(\d+)</span>天，已有(\d+)人报名，剩余(\d+)个报名名额',
+                msg,
             )[0]
             return data, info[1], info[2]
         else:
@@ -139,7 +140,8 @@ async def get_info_async(session, aid=32779):
             elif data == "候补报名":
                 # 距报名结束还有<span class="bold">1</span>天，还有30个候补机会
                 info = re.findall(
-                    r"距报名结束还有<span class=\"bold\">(\d+)</span>天，还有(\d+)个候补机会", msg
+                    r"距报名结束还有<span class=\"bold\">(\d+)</span>天，还有(\d+)个候补机会",
+                    msg,
                 )[0]
                 return [data, "unknown", info[1]]
             else:
@@ -150,6 +152,10 @@ async def get_info_async(session, aid=32779):
 
 
 async def get_infos_async(aids):
+    global cookies
+    if not check_cookies(cookies, "v"):
+        cookies = get_cookies()
+
     async with aiohttp.ClientSession() as session:
         tasks = []
         for aid in aids:
