@@ -11,11 +11,24 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from gunicorn.app.wsgiapp import WSGIApplication
+import logging
+from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
 scheduler = BackgroundScheduler()
 
 DATABASE = "lec.db"
+
+logging.basicConfig(level=logging.INFO)
+
+handler = RotatingFileHandler("web.log", maxBytes=10000, backupCount=1)
+formatter = logging.Formatter(
+    "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s"
+)
+
+handler.setFormatter(formatter)
+app.logger.addHandler(handler)
+app.logger.setLevel(logging.INFO)
 
 sender_email = os.environ.get("SENDER_EMAIL", None)
 sender_password = os.environ.get("SENDER_PASSWORD", None)
@@ -67,7 +80,7 @@ def load_dataframe():
 
 def notify_new_lectures(added_df):
     if not sender_email or not sender_password:
-        print("No email configured, skip sending email")
+        app.logger.info("No email configured, skip sending email")
         return
 
     with app.app_context():
@@ -88,19 +101,24 @@ def notify_new_lectures(added_df):
             for receiver_email in receiver_emails:
                 msg["To"] = receiver_email
                 server.sendmail(sender_email, receiver_email, msg.as_string())
+                app.logger.info("Email sent to %s", receiver_email)
 
 
 def update_db(force_notification=False):
     with app.app_context():
         df, text = sync_get_lectures()
+        app.logger.info("Update finished, %d lectures found", len(df))
         db = get_db()
         old_df = load_dataframe()
         df.to_sql("lectures", db, if_exists="replace", index=False)
         db.commit()
         added_df = get_added_lectures(df, old_df)
+
         if force_notification:
+            app.logger.info("Force notification")
             notify_new_lectures(df)
         elif len(added_df) > 0:
+            app.logger.info("New lectures found, notify")
             notify_new_lectures(added_df)
 
 
