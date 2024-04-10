@@ -105,12 +105,22 @@ async def get_lectures():
 
 
 def sync_get_lectures():
-    return asyncio.run(get_lectures())
+    lectures, text = asyncio.run(get_lectures())
+    if len(lectures) == 0:
+        lectures.loc[0, "aname"] = "当前没有任何讲座"
+        lectures.loc[0, "abstract"] = "不知道这个时候放什么图片合适"
+        lectures.loc[0, "poster"] = (
+            # "https://img1.baidu.com/it/u=1988686668,1486343908&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500"
+            "/static/vme1.png"
+        )
+        lectures.loc[0, "url"] = "https://v.ruc.edu.cn//campus#/search"
+        lectures.loc[0, "update"] = int(pd.to_datetime("now", utc=True).timestamp())
+    return lectures, text
 
 
 if __name__ == "__main__":
     tic = timer()
     df, text = sync_get_lectures()
     toc = timer()
-    print(text)
+    print(df)
     print(f"Costs {toc - tic} seconds")

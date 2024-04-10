@@ -128,7 +128,7 @@ def index(df=None):
     if df is None:
         df = load_dataframe()
         app.logger.info("Index request received, %d lectures returned", len(df))
-    mtime = df["update"].max()
+    mtime = df["update"].max() if len(df) else None
     full_slots_found = False
     df["insert"] = False
     for i, row in df.iterrows():
@@ -141,11 +141,15 @@ def index(df=None):
         if row["status"] == "取消候补报名":
             df.loc[i, "status"] = "取消候补报名（网站作者已报名，无法查看剩余名额）"
     df_dict = df.to_dict(orient="records")
-    gen_time = datetime.datetime.fromtimestamp(mtime)
+    gen_time = (
+        datetime.datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S")
+        if mtime
+        else "Unknown"
+    )
     html = render_template(
         "index.html",
         data_dicts=df_dict,
-        gen_time=gen_time.strftime("%Y-%m-%d %H:%M:%S"),
+        gen_time=gen_time,
     )
     return html
 
@@ -187,7 +191,7 @@ if __name__ == "__main__":
         update_db(force_notification=True)
         options = {
             "bind": "%s:%s" % ("10.47.251.153", "8000"),
-            "workers": 1,
+            "workers": 4,
         }
         StandaloneApplication(app, options).run()
     elif len(sys.argv) > 1 and sys.argv[1] == "performance":
@@ -201,4 +205,6 @@ if __name__ == "__main__":
         scheduler.add_job(update_db, "interval", seconds=SCHEDULE_INTERVAL)
         scheduler.start()
         update_db(force_notification=True)
-        app.run(debug=True)
+        # bind to 0.0.0.0
+        app.run(host="0.0.0.0", debug=True)
+        # app.run(debug=True)
