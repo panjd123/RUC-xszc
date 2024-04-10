@@ -8,4 +8,4 @@ lec.db
 setup.*
 receiver_emails.txt
 xszc.service
-web.log
+web.log*

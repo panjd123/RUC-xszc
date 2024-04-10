@@ -13,6 +13,7 @@ from email.mime.multipart import MIMEMultipart
 from gunicorn.app.wsgiapp import WSGIApplication
 import logging
 from logging.handlers import RotatingFileHandler
+from timeit import default_timer as timer
 
 app = Flask(__name__)
 scheduler = BackgroundScheduler()
@@ -189,6 +190,13 @@ if __name__ == "__main__":
             "workers": 1,
         }
         StandaloneApplication(app, options).run()
+    elif len(sys.argv) > 1 and sys.argv[1] == "performance":
+        with app.app_context():
+            tic = timer()
+            html = index()
+            print(html)
+            toc = timer()
+            print("Time elapsed: ", toc - tic)
     else:
         scheduler.add_job(update_db, "interval", seconds=SCHEDULE_INTERVAL)
         scheduler.start()
