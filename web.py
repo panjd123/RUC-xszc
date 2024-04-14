@@ -154,6 +154,11 @@ def index(df=None):
     return html
 
 
+@app.route("/donate")
+def donate():
+    return render_template("donate.html")
+
+
 def gen_html(file_path):
     with app.app_context():
         html = index()
