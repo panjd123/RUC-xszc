@@ -33,13 +33,18 @@ app.logger.setLevel(logging.INFO)
 
 sender_email = os.environ.get("SENDER_EMAIL", None)
 sender_password = os.environ.get("SENDER_PASSWORD", None)
-receiver_emails = []
 
-if os.path.exists("./receiver_emails.txt"):
-    receiver_emails = open("./receiver_emails.txt").read().splitlines()
 
-if sender_email not in receiver_emails:
-    receiver_emails.insert(0, sender_email)
+def get_receiver_emails():
+    receiver_emails = []
+
+    if os.path.exists("./receiver_emails.txt"):
+        receiver_emails = open("./receiver_emails.txt").read().splitlines()
+
+    if sender_email not in receiver_emails:
+        receiver_emails.insert(0, sender_email)
+
+    return receiver_emails
 
 
 def get_db():
@@ -99,7 +104,7 @@ def notify_new_lectures(added_df):
 
         with smtplib.SMTP_SSL("smtp.qq.com", 465) as server:
             server.login(sender_email, sender_password)
-            for receiver_email in receiver_emails:
+            for receiver_email in get_receiver_emails():
                 msg["To"] = receiver_email
                 server.sendmail(sender_email, receiver_email, msg.as_string())
                 app.logger.info("Email sent to %s", receiver_email)
