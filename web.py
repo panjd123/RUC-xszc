@@ -22,14 +22,14 @@ DATABASE = "lec.db"
 
 logging.basicConfig(level=logging.INFO)
 
-handler = RotatingFileHandler("web.log", maxBytes=10000, backupCount=1)
+logger = logging.getLogger("xszc")
+handler = RotatingFileHandler("web.log", maxBytes=10000)
 formatter = logging.Formatter(
     "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s"
 )
-
 handler.setFormatter(formatter)
-app.logger.addHandler(handler)
-app.logger.setLevel(logging.INFO)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 sender_email = os.environ.get("SENDER_EMAIL", None)
 sender_password = os.environ.get("SENDER_PASSWORD", None)
@@ -86,7 +86,7 @@ def load_dataframe():
 
 def notify_new_lectures(added_df):
     if not sender_email or not sender_password:
-        app.logger.info("No email configured, skip sending email")
+        logger.info("No email configured, skip sending email")
         return
 
     with app.app_context():
@@ -107,13 +107,14 @@ def notify_new_lectures(added_df):
             for receiver_email in get_receiver_emails():
                 msg["To"] = receiver_email
                 server.sendmail(sender_email, receiver_email, msg.as_string())
-                app.logger.info("Email sent to %s", receiver_email)
+                logger.info("Email sent to %s", receiver_email)
 
 
 def update_db(force_notification=False):
     with app.app_context():
+        logger.info("Update started")
         df, text = sync_get_lectures()
-        app.logger.info("Update finished, %d lectures found", len(df))
+        logger.info("Update finished, %d lectures found", len(df))
         db = get_db()
         old_df = load_dataframe()
         df.to_sql("lectures", db, if_exists="replace", index=False)
@@ -121,10 +122,10 @@ def update_db(force_notification=False):
         added_df = get_added_lectures(df, old_df)
 
         if force_notification:
-            app.logger.info("Force notification")
+            logger.info("Force notification")
             notify_new_lectures(df)
         elif len(added_df) > 0:
-            app.logger.info("New lectures found, notify")
+            logger.info("New lectures found, notify")
             notify_new_lectures(added_df)
 
 
@@ -132,7 +133,7 @@ def update_db(force_notification=False):
 def index(df=None):
     if df is None:
         df = load_dataframe()
-        app.logger.info("Index request received, %d lectures returned", len(df))
+        logger.info("Index request received, %d lectures returned", len(df))
     mtime = df["update"].max() if len(df) else None
     full_slots_found = False
     df["insert"] = False
@@ -142,9 +143,9 @@ def index(df=None):
                 df.loc[i, "insert"] = True
                 full_slots_found = True
         if row["status"] == "取消报名":
-            df.loc[i, "status"] = "取消报名（网站作者已报名，无法查看剩余名额）"
+            df.loc[i, "status"] = "网站作者已报名，无法查看剩余名额"
         if row["status"] == "取消候补报名":
-            df.loc[i, "status"] = "取消候补报名（网站作者已报名，无法查看剩余名额）"
+            df.loc[i, "status"] = "网站作者已报名，无法查看剩余名额"
     df_dict = df.to_dict(orient="records")
     gen_time = (
         datetime.datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S")
@@ -200,7 +201,8 @@ if __name__ == "__main__":
         scheduler.start()
         update_db(force_notification=True)
         options = {
-            "bind": "%s:%s" % ("10.47.251.153", "8000"),
+            # "bind": "%s:%s" % ("10.47.251.153", "8000"),
+            "bind": "%s:%s" % ("127.0.0.1", "8000"),
             "workers": 4,
         }
         StandaloneApplication(app, options).run()
@@ -211,10 +213,17 @@ if __name__ == "__main__":
             print(html)
             toc = timer()
             print("Time elapsed: ", toc - tic)
+    # elif len(sys.argv) > 1 and sys.argv[1] == "test":
+    #     from ruclogin import get_cookies, check_cookies
+    #     for i in range(5):
+    #         cookies = get_cookies()
+    #         if not check_cookies(cookies):
+    #             print("Error")
+    #             exit(1)
+    #         else:
+    #             print(f"{i} Pass")
     else:
         scheduler.add_job(update_db, "interval", seconds=SCHEDULE_INTERVAL)
         scheduler.start()
         update_db(force_notification=True)
-        # bind to 0.0.0.0
         app.run(host="0.0.0.0", debug=True)
-        # app.run(debug=True)

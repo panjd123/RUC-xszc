@@ -5,8 +5,10 @@ import pandas as pd
 import re
 import json
 from ruclogin import get_cookies, check_cookies
+import logging
 
-cookies = get_cookies()
+cookies = get_cookies(cache=False)
+logger = logging.getLogger("xszc")
 
 headers = {
     "Accept": "application/json, text/plain, */*",
@@ -73,7 +75,13 @@ async def get_page_async(session, p_data):
 
 async def get_data_async(num=1000, pageSize=20):
     global cookies
-    cookies = get_cookies()
+    if not check_cookies(cookies):
+        logger.info("Updating cookies")
+        cookies = get_cookies(cache=False)
+        if not check_cookies(cookies):
+            raise RuntimeError("ruclogin broken")
+    else:
+        logger.info("Using cached cookies")
     async with aiohttp.ClientSession() as session:
         tasks = []
         pages = num // pageSize + 1
