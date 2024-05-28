@@ -23,7 +23,12 @@ def get_added_lectures(new_lectures, old_lectures):
 
 def gen_keyinfo(lecs_df: pd.DataFrame):
     lecs_df = lecs_df[lecs_df["status"].isin(["我要报名", "候补报名"])]
-    text = "\n".join(f"{b}" for a, b in zip(lecs_df["aname"], lecs_df["begintime"]))
+    text = "\n".join(
+        f"({p}, {n}, {b})"
+        for p, n, b in zip(
+            lecs_df["partakemodename"], lecs_df["allowednum"], lecs_df["begintime"]
+        )
+    )
     return text
 
 

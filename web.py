@@ -94,9 +94,9 @@ def notify_new_lectures(added_df):
         key = gen_keyinfo(added_df)
         msg = MIMEMultipart("alternative")
         if key:
-            msg["Subject"] = "讲座提醒：您有新的讲座可以报名 " + key
+            msg["Subject"] = "[形策讲座] " + key
         else:
-            msg["Subject"] = "讲座提醒：服务器测试"
+            msg["Subject"] = "[形策讲座] 服务器测试"
         msg["From"] = sender_email
 
         part1 = MIMEText(html, "html")
